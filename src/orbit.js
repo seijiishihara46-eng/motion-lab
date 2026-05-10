@@ -66,6 +66,16 @@ export class OrbitResidue {
     persist(this.residues);
   }
 
+  // Returns count of residues within normalised-unit radius of (nx, ny).
+  // Used by the pressure system: deposits create local pressure increases.
+  densityNear(nx, ny, radius) {
+    let count = 0;
+    for (const r of this.residues) {
+      if (Math.hypot(r.x - nx, r.y - ny) < radius) count++;
+    }
+    return count;
+  }
+
   tick() {
     const now = Date.now();
     const dt = Math.min(now - this._lastTick, 200); // clamp to avoid jump on tab-return

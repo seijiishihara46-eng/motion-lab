@@ -1,5 +1,5 @@
-// Post-implementation drift checker (Issue #1 requirement).
-// Documents intentional weaknesses and removed elements.
+// Post-implementation drift checker.
+// Documents intentional weaknesses, removed elements, and drift risks.
 // Run with: node drift-checker.js
 
 const INTENTIONAL_WEAKNESSES = [
@@ -22,15 +22,15 @@ const INTENTIONAL_WEAKNESSES = [
     id: 'work-residue-partial',
     zone: 'manifestation',
     description:
-      'Works emerge as residue fragments, not complete portfolio items. ' +
-      'Some works have high emergeAt thresholds and may never surface in a session.',
+      'Works emerge as residue fragments at varying pressure thresholds. ' +
+      'Some works have high emergeAt values and may never surface in a given session.',
   },
   {
     id: 'orbit-nondeterminism',
     zone: 'orbit',
     description:
-      'Orbit residue drift is seeded randomly per deposit; positions are ' +
-      'non-reproducible. Field memory, not data.',
+      'Orbit residue drift angle and speed are randomly seeded per deposit; ' +
+      'positions are non-reproducible. Field memory, not data.',
   },
   {
     id: 'hush-unlabelled',
@@ -40,17 +40,54 @@ const INTENTIONAL_WEAKNESSES = [
       'Quieting should be felt, not identified.',
   },
   {
-    id: 'zone-ambiguity',
-    zone: 'navigation',
+    id: 'pressure-composition-unmappable',
+    zone: 'field',
     description:
-      'Zone labels (pre-meaning / convergence / manifestation) are intentionally ' +
-      'without further explanation. Meaning is not provided by the field.',
+      'Active state is determined by six factors weighted as: position (0.18), ' +
+      'stillness (0.22), velocity-inverse (0.20), dwell history (0.22), residue ' +
+      'density (0.10), manifestation exposure (0.08). No factor alone reaches any ' +
+      'hysteresis threshold. Spatial position contributes less than stillness or ' +
+      'dwell history. The observer cannot discover a reliable spatial shortcut to ' +
+      'any condition.',
+  },
+  {
+    id: 'dwell-history-temporal-opacity',
+    zone: 'field',
+    description:
+      'The dwell window is 7 seconds, recency-weighted. The same pointer position ' +
+      'yields different pressure depending on the path taken to reach it and how ' +
+      'long the observer has been moving. State is path-dependent, not location-dependent.',
+  },
+  {
+    id: 'residue-pressure-feedback',
+    zone: 'orbit',
+    description:
+      'Orbit residue deposits increase local pressure via densityNear(). ' +
+      'Areas where the observer has clicked accumulate pressure influence. ' +
+      'The field gradually reshapes itself around past interaction — invisibly.',
+  },
+  {
+    id: 'manifestation-exposure-accumulates',
+    zone: 'ontology',
+    description:
+      'Each manifestation visit increments a session counter that lowers the ' +
+      'convergence threshold and adds weight to the manifestation pressure factor. ' +
+      'Return observers reach deeper states more easily, with no indication of why.',
+  },
+  {
+    id: 'pressure-smoothing-asymmetric',
+    zone: 'field',
+    description:
+      'Observation pressure rises at α=0.04 and falls at α=0.06. ' +
+      'Pressure decays faster than it builds — state is sticky on entry, ' +
+      'but recovery from disruption is quicker than settlement.',
   },
 ];
 
 const REMOVED_ELEMENTS = [
-  'Portfolio grid / card layout — replaced by work residue',
-  'Named navigation sections — replaced by three-zone field (pre-meaning, convergence, manifestation)',
+  'Direct x-position → zone mapping (was: x < 0.33 = pre-meaning, etc.) — replaced by composite pressure',
+  'Portfolio grid / card layout — replaced by work residue at variable thresholds',
+  'Named navigation sections — replaced by three observation-pressure states',
   'Decorative / idle animations — all motion is observation-driven',
   'Loading states and spinners — field state is intentionally ambiguous on arrival',
   'Error messages — unresolvable threshold conditions are field conditions, not errors',
@@ -62,24 +99,31 @@ const DRIFT_RISKS = [
     id: 'orbit-storage-loss',
     description:
       'Orbit residue is lost if localStorage is cleared. ' +
-      'Acceptable — field memory is impermanent.',
+      'Acceptable — field memory is impermanent. Residue pressure influence resets.',
   },
   {
-    id: 'coherence-startup-spike',
+    id: 'dwell-neutral-on-load',
     description:
-      'On load, coherence starts at 1.0. First pointer movement disrupts it correctly. ' +
-      'No initialisation suppression needed.',
+      'DwellHistory returns 0.5 (neutral) until at least 2 samples accumulate (~160 ms). ' +
+      'On first load the dwell factor is neutral, which is correct.',
   },
   {
     id: 'threshold-infinity-on-first-visit',
     description:
       'First-time visitors see "convergence threshold unresolvable" until they ' +
-      'navigate to the manifestation zone. This is correct and intended.',
+      'enter the manifestation state. This is correct and intended.',
+  },
+  {
+    id: 'nav-button-pressure-override',
+    description:
+      'Zone nav buttons can still directly set state, bypassing pressure. ' +
+      'Moving away will shift pressure and eventually transition state back. ' +
+      'This is a mild learnability leak: buttons reveal state names.',
   },
 ];
 
 if (typeof process !== 'undefined' && process.argv[1]?.endsWith('drift-checker.js')) {
-  const hr = '─'.repeat(52);
+  const hr = '─'.repeat(56);
 
   console.log(`\n${hr}`);
   console.log('  ZYRKO DRIFT CHECKER');
