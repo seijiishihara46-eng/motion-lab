@@ -82,12 +82,52 @@ const INTENTIONAL_WEAKNESSES = [
       'Pressure decays faster than it builds — state is sticky on entry, ' +
       'but recovery from disruption is quicker than settlement.',
   },
+  {
+    id: 'mark-bias-direction-hidden',
+    zone: 'marks',
+    description:
+      'Each field mark has a hidden bias (range −0.05 to +0.09). ' +
+      'The observer cannot determine whether interaction increases or decreases pressure. ' +
+      'Visual type (glyph, residue, pressure, disturbance) is aesthetic only — ' +
+      'type does not correlate with bias direction or magnitude.',
+  },
+  {
+    id: 'mark-bias-insufficient-alone',
+    zone: 'marks',
+    description:
+      'No single mark interaction can cross a hysteresis threshold unaided. ' +
+      'Maximum click bias (0.09) is smaller than the narrowest band (0.10). ' +
+      'Marks influence state only in combination with movement, stillness, and dwell.',
+  },
+  {
+    id: 'mark-hover-click-asymmetry',
+    zone: 'marks',
+    description:
+      'Hover applies 28% of click bias. The asymmetry is undiscoverable. ' +
+      'Repeated hovering accumulates bias silently; the field responds without attribution.',
+  },
+  {
+    id: 'mark-bias-decay-hidden',
+    zone: 'marks',
+    description:
+      'Mark interaction bias decays with an 8-second half-life. ' +
+      'Effects are transient and leave no visible trace.',
+  },
+  {
+    id: 'mark-placement-non-systematic',
+    zone: 'marks',
+    description:
+      'Marks are not spatially aligned to any state zone. ' +
+      'Negative-bias marks appear at the right edge; positive-bias marks at the left. ' +
+      'Spatial inference from mark position fails.',
+  },
 ];
 
 const REMOVED_ELEMENTS = [
   'Direct x-position → zone mapping (was: x < 0.33 = pre-meaning, etc.) — replaced by composite pressure',
+  'Named navigation buttons with state labels (pre-meaning / convergence / manifestation) — removed entirely',
+  'Direct state-setting via user interaction — replaced by pressure bias from unlabeled marks',
   'Portfolio grid / card layout — replaced by work residue at variable thresholds',
-  'Named navigation sections — replaced by three observation-pressure states',
   'Decorative / idle animations — all motion is observation-driven',
   'Loading states and spinners — field state is intentionally ambiguous on arrival',
   'Error messages — unresolvable threshold conditions are field conditions, not errors',
@@ -114,11 +154,11 @@ const DRIFT_RISKS = [
       'enter the manifestation state. This is correct and intended.',
   },
   {
-    id: 'nav-button-pressure-override',
+    id: 'dom-state-class-readable',
     description:
-      'Zone nav buttons can still directly set state, bypassing pressure. ' +
-      'Moving away will shift pressure and eventually transition state back. ' +
-      'This is a mild learnability leak: buttons reveal state names.',
+      'Body carries a class (field--pre-meaning / field--convergence / field--manifestation) ' +
+      'that a developer can read via DOM inspection. Not visible to a typical observer; ' +
+      'acceptable as an implementation detail.',
   },
 ];
 

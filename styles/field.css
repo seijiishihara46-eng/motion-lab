@@ -36,7 +36,7 @@ html, body {
   height: 100%;
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto;
   background: var(--field-bg);
   transition: background var(--transition-field);
 }
@@ -47,7 +47,6 @@ html, body {
   transition: background var(--transition-hush);
 }
 
-.field--hush .field-nav,
 .field--hush .field-margin {
   opacity: 0.08;
   transition: opacity var(--transition-hush);
@@ -56,65 +55,6 @@ html, body {
 .field--hush .glyph-layer {
   opacity: 0.3;
   transition: opacity var(--transition-hush);
-}
-
-/* ---- Zone navigation ---- */
-
-.field-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px 28px 0;
-  opacity: 0.45;
-  transition: opacity 1.6s ease;
-}
-
-.field-nav:hover {
-  opacity: 1;
-}
-
-.zone {
-  background: none;
-  border: none;
-  color: var(--field-dim);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 9px;
-  letter-spacing: 0.22em;
-  text-transform: lowercase;
-  padding: 4px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  transition: color 1.2s ease;
-}
-
-.zone:hover {
-  color: var(--field-fg);
-}
-
-.zone-sigil {
-  font-size: 15px;
-  opacity: 0.4;
-  transition: opacity 1.2s ease;
-}
-
-.zone-label {
-  opacity: 0.6;
-}
-
-/* Active zone */
-.field--pre-meaning .zone--pre-meaning,
-.field--convergence .zone--convergence,
-.field--manifestation .zone--manifestation {
-  color: var(--field-fg);
-}
-
-.field--pre-meaning .zone--pre-meaning .zone-sigil,
-.field--convergence .zone--convergence .zone-sigil,
-.field--manifestation .zone--manifestation .zone-sigil {
-  opacity: 1;
 }
 
 /* ---- Field body ---- */
@@ -226,6 +166,74 @@ html, body {
 
 .work-residue--emerged {
   opacity: 0.28;
+}
+
+/* ---- Field marks ---- */
+/* No labels, no semantic state assignment, no direction implied */
+
+.mark-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.field-mark {
+  position: absolute;
+  pointer-events: all;
+  cursor: crosshair;
+  user-select: none;
+  transform: translate(-50%, -50%);
+  opacity: 0.17;
+  color: var(--field-dim);
+  background: none;
+  border: none;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+  padding: 10px; /* enlarged hit area with no visual increase */
+  transition: opacity 1.6s ease, color 0.8s ease;
+}
+
+.field-mark:hover {
+  opacity: 0.38;
+  transition: opacity 0.22s ease;
+}
+
+.field-mark--glyph {
+  font-size: 13px;
+}
+
+.field-mark--residue {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--field-accent);
+  opacity: 0.20;
+  padding: 0;
+}
+
+.field-mark--residue::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: -10px; /* extend hit area without visible change */
+}
+
+.field-mark--pressure {
+  font-size: 11px;
+  opacity: 0.13;
+}
+
+.field-mark--disturbance {
+  font-size: 10px;
+  opacity: 0.11;
+  letter-spacing: -0.04em;
+}
+
+/* Transient response on interaction — no directional indication */
+.field-mark--activated {
+  opacity: 0.58;
+  color: var(--field-fg);
+  transition: opacity 0.07s ease, color 0.07s ease;
 }
 
 /* ---- Footer margin ---- */

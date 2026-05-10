@@ -12,18 +12,17 @@ const COHERENCE_RECOVERY = 0.96;
 const VELOCITY_IMPACT    = 0.011;
 const VELOCITY_DECAY     = 0.86;
 
-// Observation pressure weights — weights do not need to be equal,
-// but no one factor should be large enough to determine state alone.
+// Observation pressure weights
 const W = {
-  position:      0.18, // soft spatial bias (sigmoid, not threshold)
-  stillness:     0.22, // duration since last significant movement
-  velocity:      0.20, // inverted: high speed suppresses pressure
-  dwell:         0.22, // recency-weighted history of where pointer has been
-  residue:       0.10, // orbit residue density near current pointer
-  manifestation: 0.08, // accumulated prior exposure to manifestation state
+  position:      0.18,
+  stillness:     0.22,
+  velocity:      0.20,
+  dwell:         0.22,
+  residue:       0.10,
+  manifestation: 0.08,
 };
 
-// Hysteresis bands prevent rapid state flickering at the boundaries
+// Hysteresis bands prevent rapid state flickering at boundaries
 const HYSTERESIS = {
   toConvergence:     0.36,
   fromConvergence:   0.26,
@@ -36,7 +35,6 @@ function sigmoid(x, center = 0.5, k = 6) {
 }
 
 // Tracks where the pointer has dwelled over a rolling time window.
-// Produces a recency-weighted pressure signal independent of current position.
 class DwellHistory {
   constructor(windowMs = 7000) {
     this._window     = windowMs;
@@ -46,7 +44,7 @@ class DwellHistory {
 
   record(x, y) {
     const now = Date.now();
-    if (now - this._lastRecord < 80) return; // ~12 samples/sec
+    if (now - this._lastRecord < 80) return;
     this._lastRecord = now;
     this._samples.push({ x, y, t: now });
     const cutoff = now - this._window;
@@ -55,19 +53,77 @@ class DwellHistory {
     }
   }
 
-  // Weighted average of the sigmoid-pressure of each past position,
-  // with more recent samples weighted higher.
   pressureSignal() {
-    if (this._samples.length < 2) return 0.5; // neutral until history builds
+    if (this._samples.length < 2) return 0.5;
     const now = Date.now();
     let wSum = 0, pSum = 0;
     for (const s of this._samples) {
       const recency = 1 - (now - s.t) / this._window;
-      const contrib = sigmoid(s.x);
-      pSum += contrib * recency;
+      pSum += sigmoid(s.x) * recency;
       wSum += recency;
     }
     return wSum > 0 ? pSum / wSum : 0.5;
+  }
+}
+
+// Field marks — scattered, unlabeled, ambiguous.
+// Each has a hidden bias magnitude and direction; type is visual only.
+// Interaction biases observation pressure slightly, without revealing direction or amount.
+const MARKS = [
+  // Glyph anchors
+  { x: 0.08, y: 0.19, type: 'glyph',       ch: '◌',  bias:  0.07 },
+  { x: 0.89, y: 0.13, type: 'glyph',       ch: '∘',  bias:  0.09 },
+  { x: 0.51, y: 0.07, type: 'glyph',       ch: '⊹',  bias:  0.04 },
+  { x: 0.14, y: 0.87, type: 'glyph',       ch: '⊶',  bias: -0.03 },
+  { x: 0.77, y: 0.82, type: 'glyph',       ch: '·',  bias:  0.05 },
+  // Unnamed residue points
+  { x: 0.34, y: 0.11, type: 'residue',     ch: null,  bias:  0.06 },
+  { x: 0.71, y: 0.93, type: 'residue',     ch: null,  bias:  0.03 },
+  { x: 0.03, y: 0.61, type: 'residue',     ch: null,  bias: -0.04 },
+  // Ambiguous pressure markers
+  { x: 0.05, y: 0.44, type: 'pressure',    ch: '⌁',  bias: -0.05 },
+  { x: 0.96, y: 0.52, type: 'pressure',    ch: '⊸',  bias:  0.08 },
+  { x: 0.61, y: 0.04, type: 'pressure',    ch: '⋄',  bias:  0.04 },
+  // Unlabeled field disturbances
+  { x: 0.44, y: 0.95, type: 'disturbance', ch: '⋯',  bias: -0.02 },
+  { x: 0.24, y: 0.47, type: 'disturbance', ch: '∿',  bias:  0.06 },
+  { x: 0.82, y: 0.35, type: 'disturbance', ch: '∴',  bias:  0.03 },
+];
+
+// Creates and manages all field marks.
+// Interaction applies a transient pressure bias that decays over time.
+// No mark directly sets state; no mark reveals its effect direction.
+class FieldMarkSystem {
+  constructor(layer, applyBias) {
+    this._layer     = layer;
+    this._applyBias = applyBias;
+    this._spawn();
+  }
+
+  _spawn() {
+    for (const def of MARKS) {
+      const el = document.createElement(def.type === 'residue' ? 'div' : 'span');
+      el.className = `field-mark field-mark--${def.type}`;
+      el.tabIndex  = -1; // exclude from tab order; pointer-only interaction
+      if (def.ch) el.textContent = def.ch;
+      el.style.left = `${def.x * 100}%`;
+      el.style.top  = `${def.y * 100}%`;
+
+      // Hover: fractional bias — perceptible but insufficient to cross a threshold alone
+      el.addEventListener('pointerenter', () => {
+        this._applyBias(def.bias * 0.28);
+      });
+
+      // Click: full bias with transient visual response
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        this._applyBias(def.bias);
+        el.classList.add('field-mark--activated');
+        setTimeout(() => el.classList.remove('field-mark--activated'), 460);
+      });
+
+      this._layer.appendChild(el);
+    }
   }
 }
 
@@ -87,6 +143,7 @@ class ObservationField {
     this._ctx        = this._canvas.getContext('2d');
     this._glyphLayer = document.getElementById('glyph-layer');
     this._orbitLayer = document.getElementById('orbit-layer');
+    this._markLayer  = document.getElementById('mark-layer');
     this._manifLayer = document.getElementById('manifestation-layer');
     this._statusEl   = document.getElementById('convergence-status');
     this._readoutEl  = document.getElementById('coherence-readout');
@@ -96,8 +153,9 @@ class ObservationField {
     this.convergencePressure = 0.0;
     this.zone                = 'pre-meaning';
 
-    // Observation pressure (smoothed composite)
+    // Observation pressure
     this._smoothedPressure = 0.15;
+    this._pressureBias     = 0;   // transient bias from mark interactions; decays
 
     // Pointer tracking
     this._pointer    = { x: 0.5, y: 0.5 };
@@ -110,6 +168,7 @@ class ObservationField {
     this._orbit    = new OrbitResidue(this._orbitLayer);
     this._hush     = new HushCondition(this._fieldEl);
     this._dwell    = new DwellHistory();
+    this._marks    = new FieldMarkSystem(this._markLayer, amt => this._applyBias(amt));
 
     this._works = this._buildWorks();
     this._lastFrame = performance.now();
@@ -163,12 +222,12 @@ class ObservationField {
         this._orbit.deposit(e.clientX, e.clientY);
       }
     });
+  }
 
-    // Nav buttons still allow direct state entry, but state persists
-    // via pressure — moving away will eventually shift it back
-    document.querySelectorAll('.zone').forEach(el => {
-      el.addEventListener('click', () => this._setZone(el.dataset.zone));
-    });
+  // ---- Bias ----
+
+  _applyBias(amount) {
+    this._pressureBias = Math.max(-0.15, Math.min(0.15, this._pressureBias + amount));
   }
 
   // ---- State ----
@@ -185,41 +244,35 @@ class ObservationField {
   // ---- Observation pressure ----
 
   _computeObservationPressure() {
-    // 1. Position: sigmoid over x — contributes weakly, not deterministically
     const posSignal = sigmoid(this._pointer.x);
 
-    // 2. Stillness: 0→1 as stillness duration grows toward 4.5 s
     const stillnessSignal = Math.min(1, this._hush.stillnessDuration / 4500);
 
-    // 3. Velocity: inverted — movement suppresses pressure
     const speed = Math.hypot(this._velocity.x, this._velocity.y);
     const velocitySignal = Math.max(0, 1 - Math.min(1, speed / 1.8));
 
-    // 4. Dwell: recency-weighted signal from movement history
     const dwellSignal = this._dwell.pressureSignal();
 
-    // 5. Residue density near pointer — deposits influence local pressure
     const near = this._orbit.densityNear(this._pointer.x, this._pointer.y, 0.22);
     const residueSignal = Math.min(1, near / 3);
 
-    // 6. Prior manifestation exposure — accumulated across this session
     const manifSignal = Math.min(1, this._ontology.manifestationCount() / 5);
 
-    return (
+    const base =
       posSignal       * W.position +
       stillnessSignal * W.stillness +
       velocitySignal  * W.velocity +
       dwellSignal     * W.dwell +
       residueSignal   * W.residue +
-      manifSignal     * W.manifestation
-    );
+      manifSignal     * W.manifestation;
+
+    return Math.max(0, Math.min(1, base + this._pressureBias));
   }
 
   _updateStateByPressure() {
     this._dwell.record(this._pointer.x, this._pointer.y);
 
-    const raw = this._computeObservationPressure();
-    // Pressure rises slower than it falls — asymmetric smoothing
+    const raw   = this._computeObservationPressure();
     const alpha = raw > this._smoothedPressure ? 0.04 : 0.06;
     this._smoothedPressure = this._smoothedPressure * (1 - alpha) + raw * alpha;
 
@@ -249,7 +302,6 @@ class ObservationField {
       this.coherence * COHERENCE_RECOVERY - impact,
     ));
 
-    // Convergence pressure tracks observation pressure, gated by ontology resolvability
     const threshold = this._ontology.convergenceThreshold;
     const target    = threshold === Infinity ? 0 : this._smoothedPressure;
     const delta     = target - this.convergencePressure;
@@ -267,7 +319,6 @@ class ObservationField {
     const px = this._pointer.x * W;
     const py = this._pointer.y * H;
 
-    // Coherence rings around pointer
     for (let i = 0; i < 4; i++) {
       const t = (i + 1) / 4;
       const r = 30 + t * 160 * this.convergencePressure;
@@ -279,7 +330,6 @@ class ObservationField {
       ctx.stroke();
     }
 
-    // Field lines rise with convergence pressure
     if (this.convergencePressure > 0.25) {
       const alpha  = (this.convergencePressure - 0.25) * 0.045;
       const count  = 6;
@@ -331,20 +381,16 @@ class ObservationField {
     const dt  = Math.min(now - this._lastFrame, 100);
     this._lastFrame = now;
 
-    // Decay velocity first so all readers see current value
     this._velocity.x *= VELOCITY_DECAY;
     this._velocity.y *= VELOCITY_DECAY;
 
-    // HUSH before pressure — stillnessDuration must be current
+    // Decay pressure bias toward zero — effects are transient
+    this._pressureBias *= Math.pow(0.5, dt / 8000);
+
     this._hush.reportMovement(this._velocity);
-
-    // Pressure drives state (replaces direct x→zone mapping)
     this._updateStateByPressure();
-
-    // Coherence and convergence pressure derived from smoothed pressure
     this._updateCoherence(dt);
 
-    // Ontology observation
     this._ontology.observe({
       zone: this.zone,
       coherence: this.coherence,
