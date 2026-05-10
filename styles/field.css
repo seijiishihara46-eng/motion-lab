@@ -1,0 +1,257 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --field-bg: #080808;
+  --field-fg: #c8c4bc;
+  --field-dim: #3a3732;
+  --field-accent: #8b7355;
+  --field-glyph: #4a4540;
+  --field-hush-bg: #040404;
+  --convergence-color: #7a8c7a;
+  --manifestation-color: #a09070;
+
+  --transition-field: 2.4s ease;
+  --transition-hush: 4.2s ease;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--field-bg);
+  color: var(--field-fg);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+/* ---- Field shell ---- */
+
+.field {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--field-bg);
+  transition: background var(--transition-field);
+}
+
+/* HUSH condition: field quiets when observer becomes still */
+.field--hush {
+  background: var(--field-hush-bg);
+  transition: background var(--transition-hush);
+}
+
+.field--hush .field-nav,
+.field--hush .field-margin {
+  opacity: 0.08;
+  transition: opacity var(--transition-hush);
+}
+
+.field--hush .glyph-layer {
+  opacity: 0.3;
+  transition: opacity var(--transition-hush);
+}
+
+/* ---- Zone navigation ---- */
+
+.field-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 28px 0;
+  opacity: 0.45;
+  transition: opacity 1.6s ease;
+}
+
+.field-nav:hover {
+  opacity: 1;
+}
+
+.zone {
+  background: none;
+  border: none;
+  color: var(--field-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition: color 1.2s ease;
+}
+
+.zone:hover {
+  color: var(--field-fg);
+}
+
+.zone-sigil {
+  font-size: 15px;
+  opacity: 0.4;
+  transition: opacity 1.2s ease;
+}
+
+.zone-label {
+  opacity: 0.6;
+}
+
+/* Active zone */
+.field--pre-meaning .zone--pre-meaning,
+.field--convergence .zone--convergence,
+.field--manifestation .zone--manifestation {
+  color: var(--field-fg);
+}
+
+.field--pre-meaning .zone--pre-meaning .zone-sigil,
+.field--convergence .zone--convergence .zone-sigil,
+.field--manifestation .zone--manifestation .zone-sigil {
+  opacity: 1;
+}
+
+/* ---- Field body ---- */
+
+.field-body {
+  position: relative;
+  overflow: hidden;
+}
+
+#field-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Glyph layer ---- */
+
+.glyph-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+.glyph {
+  position: absolute;
+  color: var(--field-glyph);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 2.2s ease;
+  user-select: none;
+  will-change: opacity;
+}
+
+.glyph--visible {
+  opacity: var(--glyph-opacity, 0.38);
+}
+
+/* Withheld: field intentionally hides certain glyphs */
+.glyph--withheld {
+  opacity: 0;
+  transition: opacity 3.6s ease;
+}
+
+/* ---- Orbit residue ---- */
+
+.orbit-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orbit-residue {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--field-accent);
+  opacity: 0.22;
+  transition: opacity 2s ease;
+  transform: translate(-50%, -50%);
+}
+
+.orbit-residue--fading {
+  opacity: 0.06;
+}
+
+/* ---- Manifestation layer ---- */
+
+.manifestation-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.convergence-status {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--field-dim);
+  letter-spacing: 0.26em;
+  text-transform: lowercase;
+  opacity: 0;
+  transition: opacity 2.4s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.convergence-status--visible {
+  opacity: 0.55;
+}
+
+/* Work residue: emerges partially, not as portfolio cards */
+.work-residue {
+  position: absolute;
+  color: var(--field-fg);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  line-height: 1.7;
+  opacity: 0;
+  transition: opacity 3.2s ease;
+  pointer-events: none;
+  max-width: 180px;
+  text-transform: lowercase;
+}
+
+.work-residue--emerged {
+  opacity: 0.28;
+}
+
+/* ---- Footer margin ---- */
+
+.field-margin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 28px 16px;
+  opacity: 0.28;
+  transition: opacity 1.2s ease;
+}
+
+.field-margin:hover {
+  opacity: 0.65;
+}
+
+.field-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+}
+
+.coherence-readout {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+  color: var(--convergence-color);
+}
