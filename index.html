@@ -1,28 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zyrko</title>
-  <link rel="stylesheet" href="styles/field.css">
+  <title>Stage Lab — 舞台演出3Dビジュアライザ</title>
+  <link rel="stylesheet" href="styles/stage.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
-<body class="field field--pre-meaning">
+<body>
+<div id="app">
 
-  <main class="field-body">
-    <canvas id="field-canvas" aria-hidden="true"></canvas>
-    <div class="glyph-layer" id="glyph-layer" aria-hidden="true"></div>
-    <div class="orbit-layer" id="orbit-layer" aria-hidden="true"></div>
-    <div class="mark-layer" id="mark-layer" aria-hidden="true"></div>
-    <div class="manifestation-layer" id="manifestation-layer">
-      <p class="convergence-status" id="convergence-status" aria-live="polite"></p>
+  <header id="toolbar">
+    <span class="app-title">STAGE LAB</span>
+    <div class="toolbar-sep"></div>
+    <button class="tool-btn" id="add-person">👤 人物</button>
+    <button class="tool-btn" id="add-light">💡 照明</button>
+    <button class="tool-btn" id="add-screen">📺 スクリーン</button>
+    <button class="tool-btn" id="add-laser">⚡ レーザー</button>
+    <button class="tool-btn" id="add-sfx">✨ 特効</button>
+    <div class="toolbar-sep"></div>
+    <button class="tool-btn danger" id="delete-selected">🗑 削除</button>
+    <div class="toolbar-sep"></div>
+    <span class="toolbar-label">ビュー:</span>
+    <button class="view-btn active" data-view="perspective">3D</button>
+    <button class="view-btn" data-view="top">上面</button>
+    <button class="view-btn" data-view="front">正面</button>
+    <div class="toolbar-sep"></div>
+    <span id="hover-info" class="toolbar-label"></span>
+  </header>
+
+  <div id="workspace">
+
+    <aside id="element-list-panel">
+      <div class="panel-header">エレメント</div>
+      <div id="element-list"></div>
+    </aside>
+
+    <div id="viewport">
+      <canvas id="stage-canvas"></canvas>
+      <div id="viewport-overlay">
+        <span id="mode-indicator">SELECT MODE — クリックで選択</span>
+      </div>
     </div>
-  </main>
 
-  <footer class="field-margin">
-    <span class="field-label">observation field</span>
-    <span class="coherence-readout" id="coherence-readout" aria-hidden="true"></span>
-  </footer>
+    <aside id="inspector">
+      <div class="panel-header">プロパティ</div>
+      <div id="inspector-content">
+        <p class="inspector-hint">エレメントを選択してください</p>
+      </div>
+    </aside>
 
-  <script type="module" src="src/field.js"></script>
+  </div>
+
+  <div id="cue-panel">
+
+    <div id="cue-controls">
+      <div class="panel-header">トランスポート</div>
+      <div id="cue-transport">
+        <button id="btn-go" class="go-btn">GO</button>
+        <button id="btn-stop" class="stop-btn">■ STOP</button>
+        <button id="btn-reset" class="icon-btn">⏮ RESET</button>
+        <button id="btn-add-cue" class="icon-btn accent">＋ CUE</button>
+        <div id="cue-status">Ready</div>
+        <div id="next-cue-label"></div>
+      </div>
+    </div>
+
+    <div id="cue-list-wrap">
+      <div class="panel-header">キューリスト</div>
+      <div id="cue-list"></div>
+    </div>
+
+    <div id="cue-editor">
+      <div class="panel-header" id="cue-editor-header">CUEアクション</div>
+      <div id="cue-meta"></div>
+      <div id="cue-action-list"></div>
+      <button id="btn-add-action" class="icon-btn" style="margin:4px 0">＋ アクション追加</button>
+    </div>
+
+  </div>
+
+</div>
+<script type="module" src="src/app.js"></script>
 </body>
 </html>
