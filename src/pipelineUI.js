@@ -235,6 +235,7 @@ export function setupPipelineHandlers(pipelineUI, app, engine, stageScene) {
     if (e.target.id === 'advance-export')   { pipelineUI.step = 6; pipelineUI.render(); setupPipelineHandlers(pipelineUI, app, engine, stageScene); }
 
     if (e.target.id === 'play-preview') {
+      pipelineUI.close();
       engine.reset();
       const playLoop = () => { if (engine.next) { engine.go(); setTimeout(playLoop, 2000); } };
       playLoop();
