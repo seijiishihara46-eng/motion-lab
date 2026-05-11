@@ -30,9 +30,12 @@ export class StageScene {
 
   _initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x06060e);
-    this.scene.fog = new THREE.FogExp2(0x06060e, 0.018);
-    this.scene.add(new THREE.AmbientLight(0x111133, 0.5));
+    this.scene.background = new THREE.Color(0x1a1a2e);
+    this.scene.fog = new THREE.FogExp2(0x1a1a2e, 0.012);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const dir = new THREE.DirectionalLight(0xffffff, 2.0);
+    dir.position.set(8, 20, 15);
+    this.scene.add(dir);
   }
 
   _initCamera() {
@@ -98,7 +101,9 @@ export class StageScene {
     });
 
     // Coordinate indicator
-    s.add(Object.assign(new THREE.AxesHelper(1.5), { position: new THREE.Vector3(-10, 0.1, 8) }));
+    const axes = new THREE.AxesHelper(1.5);
+    axes.position.set(-10, 0.1, 8);
+    s.add(axes);
   }
 
   _initPick() {
