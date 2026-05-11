@@ -52,7 +52,7 @@ export class ScriptParser {
 
       // キーワード検出
       const keywords = extractKeywords(line);
-      if (keywords.length > 0 || line.length > 20) {
+      if (Object.keys(keywords).length > 0 || line.length > 20) {
         const cue = {
           time: currentTime,
           label: extractLabel(line),
