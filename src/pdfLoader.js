@@ -4,8 +4,9 @@ let pdfjsLib = null;
 
 export async function initPDF() {
   if (!pdfjsLib) {
-    pdfjsLib = await import('pdfjs-dist');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.0/build/pdf.worker.min.js';
+    pdfjsLib = window.pdfjsLib;
+    if (!pdfjsLib) throw new Error('PDF.js が読み込まれていません');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   }
   return pdfjsLib;
 }
