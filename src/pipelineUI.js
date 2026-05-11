@@ -1,6 +1,7 @@
 /* パイプラインUI — スクリプト → キュー → ステージング → エクスポート */
 
 import { ScriptParser, generateCuesFromDetection } from './scriptParser.js';
+import { loadPDFFile } from './pdfLoader.js';
 
 export class PipelineUI {
   constructor(container, app) {
@@ -90,12 +91,24 @@ export class PipelineUI {
   _renderScriptImport() {
     return `<div class="pipeline-panel">
       <h3>📄 ステップ 1: スクリプト読込</h3>
-      <p>舞台台本をテキストで貼り付けてください。タイムコード、シーン指定、キャラクター、
-      アクション、感情表現などから自動的にキューポイントを検出します。</p>
-      <textarea id="script-input" placeholder="1:00 [OPENING]&#10;暗転から、温かい光が照らされる&#10;&#10;1:05 主人公が登場する&#10;悲しそうな表情&#10;涙がこぼれる&#10;&#10;1:30 [BATTLE]&#10;敵が襲ってくる&#10;激しい戦闘..."
-        style="width:100%;height:300px;font-family:monospace;padding:8px;"></textarea>
-      <button class="action-btn" id="parse-script">スクリプトを解析 →</button>
-      <div id="sample-scripts" style="margin-top:20px;">
+      <p>演出込み台本をテキストで貼り付けるか、PDFファイルをアップロードしてください。
+      タイムコード、シーン指定、キャラクター、アクション、感情表現などから自動的にキューポイントを検出します。</p>
+
+      <div style="margin-bottom:15px;">
+        <label style="display:inline-block;margin-bottom:8px;font-weight:bold;">📎 PDFファイル読込:</label><br>
+        <input type="file" id="pdf-input" accept=".pdf" style="margin-bottom:8px;">
+        <button class="action-btn" id="load-pdf">PDFを読込 →</button>
+        <div id="pdf-status" style="margin-top:6px;color:var(--text-dim);font-size:11px;"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:12px;">
+        <label style="display:block;margin-bottom:8px;font-weight:bold;">📝 またはテキスト貼り付け:</label>
+        <textarea id="script-input" placeholder="1:00 [OPENING]&#10;暗転から、温かい光が照らされる&#10;&#10;1:05 主人公が登場する&#10;悲しそうな表情&#10;涙がこぼれる&#10;&#10;1:30 [BATTLE]&#10;敵が襲ってくる&#10;激しい戦闘..."
+          style="width:100%;height:250px;font-family:monospace;padding:8px;"></textarea>
+        <button class="action-btn" id="parse-script">スクリプトを解析 →</button>
+      </div>
+
+      <div id="sample-scripts" style="margin-top:15px;">
         <button class="link-btn" id="load-sample-hero">📺 サンプル: ヒーローショー</button>
       </div>
     </div>`;
@@ -170,7 +183,23 @@ export class PipelineUI {
 export function setupPipelineHandlers(pipelineUI, app, engine, stageScene) {
   const cont = pipelineUI.container;
 
-  cont.addEventListener('click', e => {
+  cont.addEventListener('click', async e => {
+    if (e.target.id === 'load-pdf') {
+      try {
+        const pdfInput = document.getElementById('pdf-input');
+        const status = document.getElementById('pdf-status');
+        status.textContent = '読み込み中...';
+        const text = await loadPDFFile(pdfInput);
+        if (text) {
+          document.getElementById('script-input').value = text;
+          status.textContent = '✅ PDFを読み込みました (' + Math.ceil(text.length / 1000) + 'KB)';
+          setTimeout(() => { status.textContent = ''; }, 3000);
+        }
+      } catch (err) {
+        document.getElementById('pdf-status').textContent = '❌ エラー: ' + err.message;
+      }
+    }
+
     if (e.target.id === 'parse-script') {
       const scriptText = document.getElementById('script-input')?.value || '';
       if (!scriptText.trim()) { alert('スクリプトを入力してください'); return; }
