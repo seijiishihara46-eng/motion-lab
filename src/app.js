@@ -2,6 +2,8 @@ import { StageScene } from './scene.js';
 import { Person, StageLight, Screen, Laser, SpecialFX } from './elements.js';
 import { CueEngine } from './cues.js';
 import { Inspector, ElementListUI, CueListUI } from './ui.js';
+import { PipelineUI, setupPipelineHandlers } from './pipelineUI.js';
+import { ScriptParser, generateCuesFromDetection } from './scriptParser.js';
 
 class App {
   constructor() {
@@ -15,6 +17,7 @@ class App {
       document.getElementById('cue-action-list'),
       this.engine
     );
+    this.pipelineUI = new PipelineUI(document.getElementById('pipeline-modal'), this);
 
     this._wireScene();
     this._wireToolbar();
@@ -82,6 +85,11 @@ class App {
   }
 
   _wireCuePanel() {
+    document.getElementById('pipeline-btn').onclick = () => {
+      this.pipelineUI.open();
+      setupPipelineHandlers(this.pipelineUI, this, this.engine, this.stageScene);
+    };
+
     document.getElementById('btn-go').onclick    = () => { this.engine.go(); this.cueUI.refreshList(); };
     document.getElementById('btn-stop').onclick  = () => { this.engine.stop(); this.cueUI.refreshList(); };
     document.getElementById('btn-reset').onclick = () => { this.engine.reset(); this.cueUI.refreshList(); };
