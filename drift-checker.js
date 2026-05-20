@@ -123,6 +123,43 @@ const INTENTIONAL_WEAKNESSES = [
   },
 ];
 
+// Content structure module — documents the video segment mapping.
+const CONTENT_STRUCTURE_NOTES = [
+  {
+    id: 'se-density-as-coherence-disruption',
+    zone: 'content-structure',
+    description:
+      'SE density (many / moderate / few / minimal) is mapped to a coherence-disruption ' +
+      'magnitude (0.06–0.72). High SE activity corresponds to low coherence — the field ' +
+      'resists sustained observation when sound is fragmentary.',
+  },
+  {
+    id: 'bgm-continuity-as-pressure-stability',
+    zone: 'content-structure',
+    description:
+      'BGM continuity (switching / theme-fixed / continuous / theme-return) is mapped to a ' +
+      'pressure-stability index (0–1). Continuous BGM (ranking segment) yields the highest ' +
+      'stability (0.92), enabling the manifestation zone; frequent switching (opening) keeps ' +
+      'stability at 0.18, holding the field in pre-meaning.',
+  },
+  {
+    id: 'passive-listening-mode',
+    zone: 'content-structure',
+    description:
+      'Segments marked passiveListening=true (background, ranking) correspond to hush-like ' +
+      'field conditions — the observer is present but not actively directing attention. ' +
+      'The HUSH condition activates naturally during these segments.',
+  },
+  {
+    id: 'zone-mapping-descriptive-not-prescriptive',
+    zone: 'content-structure',
+    description:
+      'likelyZone in fieldHints describes expected observation conditions, not a forced state. ' +
+      'The field still responds to composite pressure from the live observer — segment timing ' +
+      'is a structural tendency, not a clock-driven override.',
+  },
+];
+
 const REMOVED_ELEMENTS = [
   'Direct x-position → zone mapping (was: x < 0.33 = pre-meaning, etc.) — replaced by composite pressure',
   'Named navigation buttons with state labels (pre-meaning / convergence / manifestation) — removed entirely',
@@ -175,6 +212,12 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('drift-checker.j
     console.log(`      ${w.description}\n`);
   });
 
+  console.log('CONTENT STRUCTURE\n');
+  CONTENT_STRUCTURE_NOTES.forEach((n, i) => {
+    console.log(`  [${i + 1}] ${n.id}  (${n.zone})`);
+    console.log(`      ${n.description}\n`);
+  });
+
   console.log('REMOVED ELEMENTS\n');
   REMOVED_ELEMENTS.forEach((el, i) => console.log(`  [${i + 1}] ${el}`));
 
@@ -187,4 +230,4 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('drift-checker.j
   console.log(hr + '\n');
 }
 
-export { INTENTIONAL_WEAKNESSES, REMOVED_ELEMENTS, DRIFT_RISKS };
+export { INTENTIONAL_WEAKNESSES, REMOVED_ELEMENTS, DRIFT_RISKS, CONTENT_STRUCTURE_NOTES };
